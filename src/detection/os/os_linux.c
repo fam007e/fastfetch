@@ -8,9 +8,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define FF_STR_INDIR(x) #x
-#define FF_STR(x) FF_STR_INDIR(x)
-
 static bool parseLsbRelease(const char* fileName, FFOSResult* result) {
     return ffParsePropFileValues(fileName, 4, (FFpropquery[]) {
                                                   { "DISTRIB_ID =", &result->id },
@@ -333,6 +330,17 @@ FF_A_UNUSED static void detectDeepinEnhancement(FFOSResult* result) {
     }
 }
 
+FF_A_UNUSED static void detectAstraVersion(FFOSResult* result) {
+    // `PRETTY_NAME` is just `Astra Linux`; the version is in `VERSION_ID`, e.g. `2.12_x86-64`
+    if (result->version.length == 0) { // Should be empty. Just in case
+        ffStrbufAppendSUntilC(&result->version, result->versionID.chars, '_');
+    }
+    if (result->version.length > 0) {
+        ffStrbufAppendC(&result->prettyName, ' ');
+        ffStrbufAppend(&result->prettyName, &result->version);
+    }
+}
+
 static void detectOS(FFOSResult* os) {
 #ifdef FF_CUSTOM_OS_RELEASE_PATH
     parseOsRelease(FF_STR(FF_CUSTOM_OS_RELEASE_PATH), os);
@@ -392,6 +400,8 @@ void ffDetectOSImpl(FFOSResult* os) {
         }
     } else if (ffStrbufEqualS(&os->id, "deepin")) {
         detectDeepinEnhancement(os);
+    } else if (ffStrbufEqualS(&os->id, "astra")) {
+        detectAstraVersion(os);
     }
 #endif
 }
