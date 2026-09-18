@@ -45,6 +45,7 @@ static void printDisk(FFDiskOptions* options, const FFDisk* disk, uint32_t index
                                                                            FF_ARG(disk->filesystem, "filesystem"),
                                                                            FF_ARG(mountpointLink, "mountpoint-link"),
                                                                            FF_ARG(nameLink, "name-link"),
+                                                                           FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Disk), "module-name"),
                                                                        }));
     }
 
@@ -490,8 +491,8 @@ FFModuleBaseInfo ffDiskModuleInfo = {
         { "Files percentage num", "files-percentage" },
         { "True if external volume", "is-external" },
         { "True if hidden volume", "is-hidden" },
-        { "Filesystem", "filesystem" },
-        { "Label / name", "name" },
+        { "Filesystem *", "filesystem" },
+        { "Label / name *", "name" },
         { "True if read-only", "is-readonly" },
         { "Create time in local timezone", "create-time" },
         { "Size percentage bar", "size-percentage-bar" },
@@ -501,8 +502,8 @@ FFModuleBaseInfo ffDiskModuleInfo = {
         { "Minutes after creation", "minutes" },
         { "Seconds after creation", "seconds" },
         { "Milliseconds after creation", "milliseconds" },
-        { "Mount point / drive letter", "mountpoint" },
-        { "Mount from (device path)", "mount-from" },
+        { "Mount point / drive letter *", "mountpoint" },
+        { "Mount from (device path) *", "mount-from" },
         { "Years integer after creation", "years" },
         { "Days of year after creation", "days-of-year" },
         { "Years fraction after creation", "years-fraction" },

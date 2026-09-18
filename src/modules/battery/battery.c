@@ -21,6 +21,7 @@ static void printBattery(FFBatteryOptions* options, FFBatteryResult* result, uin
                                                                            FF_ARG(index, "index"),
                                                                            FF_ARG(result->modelName, "name"),
                                                                            FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                           FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Battery), "module-name"),
                                                                        }));
     }
 
@@ -146,7 +147,7 @@ static void printBattery(FFBatteryOptions* options, FFBatteryResult* result, uin
 
         FF_PRINT_FORMAT_CHECKED(key.chars, 0, &options->moduleArgs, FF_PRINT_TYPE_NO_CUSTOM_KEY, ((FFformatarg[]) {
                                                                                                      FF_ARG(result->manufacturer, "manufacturer"),
-                                                                                                     FF_ARG(result->modelName, "model-name"),
+                                                                                                     FF_ARG(result->modelName, "name"),
                                                                                                      FF_ARG(result->technology, "technology"),
                                                                                                      FF_ARG(capacityNum, "capacity"),
                                                                                                      FF_ARG(status, "status"),
@@ -329,7 +330,7 @@ FFModuleBaseInfo ffBatteryModuleInfo = {
     .generateJsonConfig = (void*) ffGenerateBatteryJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
         { "Battery manufacturer", "manufacturer" },
-        { "Battery model name", "model-name" },
+        { "Battery model name *", "name" },
         { "Battery technology", "technology" },
         { "Battery capacity (percentage num)", "capacity" },
         { "Battery status", "status" },

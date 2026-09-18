@@ -83,6 +83,7 @@ bool ffPrintDisplay(FFDisplayOptions* options) {
                                                                                FF_ARG(result->name, "name"),
                                                                                FF_ARG(displayType, "type"),
                                                                                FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                               FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Display), "module-name"),
                                                                            }));
         }
 
@@ -447,8 +448,8 @@ FFModuleBaseInfo ffDisplayModuleInfo = {
         { "Screen configured refresh rate (in Hz)", "refresh-rate" },
         { "Screen scaled width (in pixels)", "scaled-width" },
         { "Screen scaled height (in pixels)", "scaled-height" },
-        { "Screen name", "name" },
-        { "Screen type (Built-in or External)", "type" },
+        { "Screen name *", "name" },
+        { "Screen type (Built-in or External) *", "type" },
         { "Screen rotation (in degrees)", "rotation" },
         { "True if being the primary screen", "is-primary" },
         { "Screen physical width (in millimeters)", "physical-width" },

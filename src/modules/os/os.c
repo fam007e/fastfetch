@@ -63,6 +63,7 @@ bool ffPrintOS(FFOSOptions* options) {
                                                                            FF_ARG(instance.state.platform.sysinfo.name, "sysname"),
                                                                            FF_ARG(os->name, "name"),
                                                                            FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                           FF_ARG(FF_MODULE_GET_DISPLAY_NAME(OS), "module-name"),
                                                                        }));
     }
 
@@ -203,8 +204,8 @@ FFModuleBaseInfo ffOSModuleInfo = {
     .generateJsonResult = (void*) ffGenerateOSJsonResult,
     .generateJsonConfig = (void*) ffGenerateOSJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
-        { "Name of the kernel", "sysname" },
-        { "Name of the OS", "name" },
+        { "Name of the kernel *", "sysname" },
+        { "Name of the OS *", "name" },
         { "Pretty name of the OS, if available", "pretty-name" },
         { "ID of the OS", "id" },
         { "ID like of the OS", "id-like" },

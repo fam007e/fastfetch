@@ -70,6 +70,7 @@ static void printCommandFormatHelp(const char* command) {
                 printf("-- In config file: { \"type\": \"%s\", \"format\": \"{<format-variable>}\" }\n", type.chars);
                 printf("Sets the format string for %s output.\n", baseInfo->name);
                 puts("To see how a format string is constructed, take a look at https://github.com/fastfetch-cli/fastfetch/wiki/Format-String-Guide.");
+                puts("Descriptions which end with a '*' are available in key format too.");
                 puts("The following variables are passed:");
 
                 uint32_t maxWidth = 20;
@@ -910,7 +911,7 @@ int main(int argc, char** argv) {
             ffStrbufSetS(&data.structure, FASTFETCH_DATATEXT_STRUCTURE); // Cannot use `ffStrbufSetStatic` here because we will modify the string
         }
         if (data.genConfigInteractive && !ffGenConfigInteractive(&data)) {
-            // User cancelled the interactive config generation
+            // User canceled the interactive config generation
             ffStrbufDestroy(&data.structure);
             ffStrbufDestroy(&data.structureDisabled);
             yyjson_doc_free(data.configDoc);

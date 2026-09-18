@@ -24,6 +24,7 @@ static void formatKey(const FFLocalIpOptions* options, FFLocalIpResult* ip, uint
                                                                           FF_ARG(ip->name, "ifname"),
                                                                           FF_ARG(ip->mac, "mac"),
                                                                           FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                          FF_ARG(FF_MODULE_GET_DISPLAY_NAME(LocalIP), "module-name"),
                                                                       }));
     }
 }
@@ -454,8 +455,8 @@ FFModuleBaseInfo ffLocalIPModuleInfo = {
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
         { "IPv4 address", "ipv4" },
         { "IPv6 address", "ipv6" },
-        { "MAC address", "mac" },
-        { "Interface name", "ifname" },
+        { "MAC address *", "mac" },
+        { "Interface name *", "ifname" },
         { "Is default route", "is-default-route" },
         { "MTU size in bytes", "mtu" },
         { "Link speed (formatted)", "speed" },

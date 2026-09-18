@@ -22,6 +22,7 @@ static void printZpool(FFZpoolOptions* options, FFZpoolResult* result, uint8_t i
                                                                               FF_ARG(result->name, "name"),
                                                                               FF_ARG(result->guid, "guid"),
                                                                               FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                              FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Zpool), "module-name"),
                                                                           }));
     }
 
@@ -223,8 +224,8 @@ FFModuleBaseInfo ffZpoolModuleInfo = {
     .generateJsonResult = (void*) ffGenerateZpoolJsonResult,
     .generateJsonConfig = (void*) ffGenerateZpoolJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
-        { "Zpool name", "name" },
-        { "Zpool guid", "guid" },
+        { "Zpool name *", "name" },
+        { "Zpool guid *", "guid" },
         { "Zpool state", "state" },
         { "Size used", "size-used" },
         { "Size allocated", "size-allocated" },

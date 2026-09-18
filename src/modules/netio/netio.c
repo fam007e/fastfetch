@@ -20,8 +20,9 @@ static void formatKey(const FFNetIOOptions* options, FFNetIOResult* inf, uint32_
         ffStrbufClear(key);
         FF_PARSE_FORMAT_STRING_CHECKED(key, &options->moduleArgs.key, ((FFformatarg[]) {
                                                                           FF_ARG(index, "index"),
-                                                                          FF_ARG(inf->name, "name"),
+                                                                          FF_ARG(inf->name, "ifname"),
                                                                           FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                          FF_ARG(FF_MODULE_GET_DISPLAY_NAME(NetIO), "module-name"),
                                                                       }));
     }
 }
@@ -126,6 +127,9 @@ void ffParseNetIOJsonObject(FFNetIOOptions* options, yyjson_val* module) {
 
         if (unsafe_yyjson_equals_str(key, "waitTime")) {
             options->waitTime = (uint32_t) yyjson_get_uint(val);
+            if (options->waitTime == 0) {
+                options->waitTime = 1;
+            }
             continue;
         }
 
@@ -188,7 +192,7 @@ void ffInitNetIOOptions(FFNetIOOptions* options) {
 #endif
         ;
     options->detectTotal = false;
-    options->waitTime = 500;
+    options->waitTime = 250;
 }
 
 void ffDestroyNetIOOptions(FFNetIOOptions* options) {
@@ -230,7 +234,7 @@ FFModuleBaseInfo ffNetIOModuleInfo = {
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
         { "Size of data received [per second] (formatted)", "rx-size" },
         { "Size of data sent [per second] (formatted)", "tx-size" },
-        { "Interface name", "ifname" },
+        { "Interface name *", "ifname" },
         { "Is default route", "is-default-route" },
         { "Size of data received [per second] (in bytes)", "rx-bytes" },
         { "Size of data sent [per second] (in bytes)", "tx-bytes" },

@@ -21,6 +21,7 @@ void printSwap(FFSwapOptions* options, uint8_t index, uint32_t totalCount, FFSwa
                                                                            FF_ARG(index, "index"),
                                                                            FF_ARG(storage->name, "name"),
                                                                            FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                           FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Swap), "module-name"),
                                                                        }));
     }
 
@@ -217,7 +218,7 @@ FFModuleBaseInfo ffSwapModuleInfo = {
         { "Total size", "total" },
         { "Percentage used (num)", "percentage" },
         { "Percentage used (bar)", "percentage-bar" },
-        { "Name", "name" },
+        { "Name *", "name" },
     })),
     .defaultOrder = 40,
 };

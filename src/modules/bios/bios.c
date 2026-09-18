@@ -40,6 +40,7 @@ bool ffPrintBios(FFBiosOptions* options) {
         FF_PARSE_FORMAT_STRING_CHECKED(&key, &options->moduleArgs.key, ((FFformatarg[]) {
                                                                            FF_ARG(bios.type, "type"),
                                                                            FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                           FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Bios), "module-name"),
                                                                        }));
     }
 
@@ -160,12 +161,12 @@ FFModuleBaseInfo ffBiosModuleInfo = {
     .printModule = (void*) ffPrintBios,
     .generateJsonResult = (void*) ffGenerateBiosJsonResult,
     .generateJsonConfig = (void*) ffGenerateBiosJsonConfig,
-    .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
+    .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]){
         { "BIOS date", "date" },
         { "BIOS release", "release" },
         { "BIOS vendor", "vendor" },
         { "BIOS version", "version" },
-        { "Firmware type", "type" },
+        { "Firmware type *", "type" },
     })),
     .defaultOrder = 5,
 };

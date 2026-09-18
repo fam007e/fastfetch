@@ -61,6 +61,7 @@ static void printCodecLine(const FFCodecOptions* options, uint8_t index, FFstrbu
                                                                            FF_ARG(*gpu, "gpu"),
                                                                            FF_ARG(direction, "direction"),
                                                                            FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                           FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Codec), "module-name"),
                                                                        }));
     }
 
@@ -282,8 +283,8 @@ FFModuleBaseInfo ffCodecModuleInfo = {
     .generateJsonResult = (void*) ffGenerateCodecJsonResult,
     .generateJsonConfig = (void*) ffGenerateCodecJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]){
-        { "GPU name", "gpu" },
-        { "Decoder / Encoder", "direction" },
+        { "GPU name *", "gpu" },
+        { "Decoder / Encoder *", "direction" },
         { "Compatibility alias of codec types", "types" },
         { "Platform API used for detection", "platform-api" },
     })),

@@ -19,6 +19,7 @@ static void formatKey(const FFDiskIOOptions* options, FFDiskIOResult* dev, uint3
                                                                           FF_ARG(dev->name, "name"),
                                                                           FF_ARG(dev->devPath, "dev-path"),
                                                                           FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                          FF_ARG(FF_MODULE_GET_DISPLAY_NAME(DiskIO), "module-name"),
                                                                       }));
     }
 }
@@ -111,6 +112,9 @@ void ffParseDiskIOJsonObject(FFDiskIOOptions* options, yyjson_val* module) {
 
         if (unsafe_yyjson_equals_str(key, "waitTime")) {
             options->waitTime = (uint32_t) yyjson_get_uint(val);
+            if (options->waitTime == 0) {
+                options->waitTime = 1;
+            }
             continue;
         }
 
@@ -161,7 +165,7 @@ void ffInitDiskIOOptions(FFDiskIOOptions* options) {
 
     ffStrbufInit(&options->namePrefix);
     options->detectTotal = false;
-    options->waitTime = 500;
+    options->waitTime = 250;
 }
 
 void ffDestroyDiskIOOptions(FFDiskIOOptions* options) {
@@ -201,10 +205,10 @@ FFModuleBaseInfo ffDiskIOModuleInfo = {
     .generateJsonResult = (void*) ffGenerateDiskIOJsonResult,
     .generateJsonConfig = (void*) ffGenerateDiskIOJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
-        { "Size of data read [per second] (formatted)", "size-read" },
+        { "Size of data read [per second] (formatted)"   , "size-read" },
         { "Size of data written [per second] (formatted)", "size-written" },
-        { "Device name", "name" },
-        { "Device raw file path", "dev-path" },
+        { "Device name *", "name" },
+        { "Device raw file path *", "dev-path" },
         { "Size of data read [per second] (in bytes)", "bytes-read" },
         { "Size of data written [per second] (in bytes)", "bytes-written" },
         { "Number of reads", "read-count" },

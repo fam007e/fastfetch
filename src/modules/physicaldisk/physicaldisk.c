@@ -19,6 +19,7 @@ static void formatKey(const FFPhysicalDiskOptions* options, FFPhysicalDiskResult
                                                                           FF_ARG(dev->name, "name"),
                                                                           FF_ARG(dev->devPath, "dev-path"),
                                                                           FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                          FF_ARG(FF_MODULE_GET_DISPLAY_NAME(PhysicalDisk), "module-name"),
                                                                       }));
     }
 }
@@ -295,9 +296,9 @@ FFModuleBaseInfo ffPhysicalDiskModuleInfo = {
     .generateJsonConfig = (void*) ffGeneratePhysicalDiskJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
         { "Device size (formatted)", "size" },
-        { "Device name", "name" },
+        { "Device name *", "name" },
         { "Device interconnect type", "interconnect" },
-        { "Device raw file path", "dev-path" },
+        { "Device raw file path *", "dev-path" },
         { "Serial number", "serial" },
         { "Device kind (SSD or HDD)", "physical-type" },
         { "Device kind (Removable or Fixed)", "removable-type" },

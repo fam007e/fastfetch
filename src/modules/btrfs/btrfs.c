@@ -20,6 +20,7 @@ static void printBtrfs(FFBtrfsOptions* options, FFBtrfsResult* result, uint8_t i
                                                                               FF_ARG(index, "index"),
                                                                               FF_ARG(result->name, "name"),
                                                                               FF_ARG(options->moduleArgs.keyIcon, "icon"),
+                                                                              FF_ARG(FF_MODULE_GET_DISPLAY_NAME(Btrfs), "module-name"),
                                                                           }));
     }
 
@@ -229,7 +230,7 @@ FFModuleBaseInfo ffBtrfsModuleInfo = {
     .generateJsonResult = (void*) ffGenerateBtrfsJsonResult,
     .generateJsonConfig = (void*) ffGenerateBtrfsJsonConfig,
     .formatArgs = FF_FORMAT_ARG_LIST(((FFModuleFormatArg[]) {
-        { "Name / Label", "name" },
+        { "Name / Label *", "name" },
         { "UUID", "uuid" },
         { "Associated devices", "devices" },
         { "Enabled features", "features" },
