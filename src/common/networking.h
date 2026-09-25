@@ -34,11 +34,20 @@ typedef struct FFNetworkingState {
 [[gnu::nonnull(1, 2, 4), nodiscard]] const char* ffNetworkingSendHttpRequest(FFNetworkingState* state, const char* host, uint16_t port, const char* path, const char* headers);
 [[gnu::nonnull(1, 2), nodiscard]] const char* ffNetworkingRecvHttpResponse(FFNetworkingState* state, FFstrbuf* buffer);
 
+// Releases what a finished request holds and returns `state` to the idle state, so that the next
+// `ffNetworkingSendHttpRequest` starts from scratch. A request that never reached the wire can
+// still own the request buffer, so a plain zeroing of the struct is not enough.
+// The caller stays responsible for its own bookkeeping, such as clearing a "request sent" latch.
+[[gnu::nonnull(1)]] static inline void ffNetworkingResetState(FFNetworkingState* state) {
+    ffStrbufDestroy(&state->command);
+    *state = (FFNetworkingState) {};
+}
+
 // Case-insensitive header lookup restricted to the header block [0, headerEnd).
 // Restricting the range matters because the body may already share the same buffer.
 // Returns a pointer to the first character of the value; `valueLen` receives its
 // length excluding the terminating CRLF. Returns nullptr when the header is absent.
-[[gnu::nonnull(1, 3, 4), gnu::pure, nodiscard]] const char* ffNetworkingFindHeader(const char* headers, uint32_t headerEnd, const char* name, uint32_t* valueLen);
+[[gnu::nonnull(1, 3, 4), nodiscard]] const char* ffNetworkingFindHeader(const char* headers, uint32_t headerEnd, const char* name, uint32_t* valueLen);
 
 // Checks whether a `Transfer-Encoding: chunked` body has been received in full, so that
 // framing does not have to rely on the server closing the connection.
@@ -51,7 +60,10 @@ typedef struct FFNetworkingState {
 
 // Decodes a `Transfer-Encoding: chunked` body in place and rewrites the response with a
 // `Content-Length` header in place of `Transfer-Encoding`.
-[[gnu::nonnull(1), nodiscard]] bool ffNetworkingDecodeChunked(FFstrbuf* buffer, uint32_t headerEnd);
+// `headerEnd` is updated in place: the rewrite changes the header length, so the value the caller
+// passed in no longer describes the buffer afterwards. Callers must use the new one for anything
+// that addresses the body, such as ffNetworkingDecompressGzip().
+[[gnu::nonnull(1, 2), nodiscard]] bool ffNetworkingDecodeChunked(FFstrbuf* buffer, uint32_t* headerEnd);
 
 // Result of parsing a `Transfer-Encoding` header value
 typedef enum FFNetworkingTransferEncoding {
