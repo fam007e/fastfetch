@@ -60,6 +60,7 @@ endif()
 
 include(CheckIncludeFile)
 include(CheckFunctionExists)
+include(CheckSymbolExists)
 
 if(LINUX)
     CHECK_INCLUDE_FILE("linux/version.h" HAVE_LINUX_VERSION_H)
@@ -506,6 +507,7 @@ set(LIBFASTFETCH_SRC
     src/common/impl/FFPlatform.c
     src/common/impl/smbios.c
     src/common/impl/strutil.c
+    src/common/impl/zlib.c
     src/detection/bluetoothradio/bluetoothradio.c
     src/detection/bootmgr/bootmgr.c
     src/detection/chassis/chassis.c
@@ -1050,6 +1052,7 @@ elseif(APPLE)
         src/detection/libc/libc_apple.c
         src/detection/locale/locale_linux.c
         src/detection/localip/localip_linux.c
+        src/detection/localip/localip_apple.c
         src/detection/gamepad/gamepad_apple.m
         src/detection/media/media_apple.m
         src/detection/memory/memory_apple.c
@@ -1548,11 +1551,15 @@ if(APPLE AND BINARY_LINK_TYPE STREQUAL "dlopen")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,/opt/homebrew/lib -Wl,-rpath,/usr/local/lib -Wl,-rpath,/opt/local/lib")
 endif()
 
+# Termux installs the libraries fastfetch dlopens -- freetype among them -- under TARGET_DIR_ROOT, which
+# is not on the Android linker's default search path (DT_RUNPATH, LD_LIBRARY_PATH and the default
+# namespace). Termux's own clang injects -rpath=$PREFIX/lib into every binary it links, so a build made
+# inside Termux finds them; a plain NDK build, which is what the CI does, does not.
 if(ANDROID)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,/vendor/lib64 -Wl,-rpath,/system/lib64")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${TARGET_DIR_ROOT}/lib -Wl,-rpath,/vendor/lib64 -Wl,-rpath,/system/lib64")
     else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,/vendor/lib -Wl,-rpath,/system/lib")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${TARGET_DIR_ROOT}/lib -Wl,-rpath,/vendor/lib -Wl,-rpath,/system/lib")
     endif()
 endif()
 
@@ -1735,9 +1742,18 @@ function(ff_lib_enable VARNAME PKGCONFIG_NAMES CMAKE_NAME) # [CMAKE_TARGET_NAME]
                     endif()
                 endif()
             else()
-                set(${VARNAME}_INCLUDE_DIRS ${${CMAKE_NAME}_INCLUDE_DIRS})
-                set(${VARNAME}_LIBRARIES ${${CMAKE_NAME}_LIBRARIES})
-                set(${VARNAME}_CFLAGS_OTHER ${${CMAKE_NAME}_CFLAGS_OTHER})
+                # find_package modules disagree on how they name their result variables. Newer ones
+                # export <PackageName>_* (FindVulkan sets Vulkan_INCLUDE_DIRS), but older ones only
+                # set the upper-case form: FindFreetype sets FREETYPE_INCLUDE_DIRS and
+                # FREETYPE_LIBRARIES and has no Freetype_INCLUDE_DIRS at all. Assigning
+                # unconditionally would therefore wipe the include path the module had just
+                # provided, and the package would be "found" with nothing to compile against.
+                # Fill in only the gaps.
+                foreach(_FF_SUFFIX INCLUDE_DIRS LIBRARIES CFLAGS_OTHER)
+                    if(NOT DEFINED ${VARNAME}_${_FF_SUFFIX} OR "${${VARNAME}_${_FF_SUFFIX}}" STREQUAL "")
+                        set(${VARNAME}_${_FF_SUFFIX} ${${CMAKE_NAME}_${_FF_SUFFIX}})
+                    endif()
+                endforeach()
             endif()
         endif()
     endif()
@@ -1856,9 +1872,11 @@ ff_lib_enable(OPENCL
     "OpenCL"
     "OpenCL"
 )
+# `Freetype` is the module CMake ships (Modules/FindFreetype.cmake); there is no FindFreeType2, so
+# this name never resolved and only pkg-config could ever turn freetype on.
 ff_lib_enable(FREETYPE
     "freetype2"
-    "FreeType2"
+    "Freetype"
 )
 ff_lib_enable(ELF
     "libelf"
@@ -2157,7 +2175,17 @@ if(NOT WIN32)
         endif()
     endif()
     if(NOT ENABLE_WORDEXP)
-        message(STATUS "wordexp.h not found or disabled, glob used instead")
+        # wordexp.h is not the only thing that can be missing. bionic declares glob() and globfree()
+        # only from API 28, so an NDK build aimed at 24 has neither and a fallback that assumed glob
+        # would have nothing to call. The symbol is what has to be checked, not the header: <glob.h>
+        # is present at every level, it just declares nothing below 28.
+        check_symbol_exists("glob" "glob.h" HAVE_GLOB)
+        if(HAVE_GLOB)
+            target_compile_definitions(libfastfetch PUBLIC FF_HAVE_GLOB=1)
+            message(STATUS "wordexp.h not found or disabled, glob used instead")
+        else()
+            message(STATUS "neither wordexp.h nor glob.h is usable, config paths will not be expanded")
+        endif()
     endif()
     if(ENABLE_THREADS AND CMAKE_USE_PTHREADS_INIT)
         CHECK_INCLUDE_FILE("pthread_np.h" HAVE_PTHREAD_NP)
