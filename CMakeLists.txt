@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21.0) # C_STANDARD C17 and C23
 
 project(fastfetch
-    VERSION 2.70.0
+    VERSION 2.71.0
     LANGUAGES C
     DESCRIPTION "Fast neofetch-like system information tool"
     HOMEPAGE_URL "https://github.com/fastfetch-cli/fastfetch"
@@ -564,6 +564,8 @@ set(LIBFASTFETCH_SRC
     src/detection/zpool/zpool.c
     src/logo/builtin.c
     src/logo/logo.c
+    src/logo/spin/render.c
+    src/logo/spin/spin.c
     src/modules/modules.c
     src/options/display.c
     src/options/logo.c
@@ -618,6 +620,7 @@ if(LINUX)
         src/detection/dns/dns_linux.c
         src/detection/physicaldisk/physicaldisk_linux.c
         src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/diskio/diskio_linux.c
         src/detection/displayserver/linux/displayserver_linux.c
         src/detection/displayserver/linux/common.c
@@ -796,7 +799,7 @@ elseif(FreeBSD)
         src/detection/disk/disk_bsd.c
         src/detection/dns/dns_linux.c
         src/detection/physicaldisk/physicaldisk_bsd.c
-        src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/diskio/diskio_bsd.c
         src/detection/displayserver/linux/displayserver_linux.c
         src/detection/displayserver/linux/common.c
@@ -895,7 +898,7 @@ elseif(NetBSD)
         src/detection/disk/disk_bsd.c
         src/detection/dns/dns_linux.c
         src/detection/physicaldisk/physicaldisk_nbsd.c
-        src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/diskio/diskio_nbsd.c
         src/detection/displayserver/linux/displayserver_linux.c
         src/detection/displayserver/linux/common.c
@@ -981,7 +984,7 @@ elseif(OpenBSD)
         src/detection/disk/disk_bsd.c
         src/detection/dns/dns_linux.c
         src/detection/physicaldisk/physicaldisk_obsd.c
-        src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/diskio/diskio_obsd.c
         src/detection/displayserver/linux/displayserver_linux.c
         src/detection/displayserver/linux/common.c
@@ -1122,7 +1125,7 @@ elseif(APPLE)
             src/detection/board/board_windows.c
             src/detection/chassis/chassis_windows.c
             src/detection/host/host_windows.c
-            src/detection/physicalmemory/physicalmemory_linux.c
+            src/detection/physicalmemory/physicalmemory_shared.c
         )
     else()
         list(APPEND LIBFASTFETCH_SRC
@@ -1186,7 +1189,7 @@ elseif(WIN32)
         src/detection/media/media_windows.cpp
         src/detection/memory/memory_windows.c
         src/detection/mouse/mouse_windows.c
-        src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/netio/netio_windows.c
         src/detection/opengl/opengl_windows.c
         src/detection/os/os_windows.c
@@ -1242,7 +1245,7 @@ elseif(SunOS)
         src/detection/disk/disk_sunos.c
         src/detection/dns/dns_linux.c
         src/detection/physicaldisk/physicaldisk_sunos.c
-        src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/diskio/diskio_sunos.c
         src/detection/displayserver/linux/displayserver_linux.c
         src/detection/displayserver/linux/common.c
@@ -1327,7 +1330,7 @@ elseif(Haiku)
         src/detection/disk/disk_haiku.cpp
         src/detection/dns/dns_linux.c
         src/detection/physicaldisk/physicaldisk_haiku.c
-        src/detection/physicalmemory/physicalmemory_linux.c
+        src/detection/physicalmemory/physicalmemory_shared.c
         src/detection/diskio/diskio_nosupport.c
         src/detection/displayserver/displayserver_haiku.cpp
         src/detection/font/font_haiku.cpp
@@ -1608,14 +1611,14 @@ if(APPLE AND EXISTS "/usr/bin/otool")
         target_compile_definitions(libfastfetch PUBLIC FF_LIBSYSTEM_VERSION="${CMAKE_MATCH_1}")
     endif()
 endif()
-if(MidnightBSD AND EXISTS "/usr/bin/objdump")
+if(FreeBSD AND NOT DragonFly AND EXISTS "/usr/bin/objdump")
     execute_process(COMMAND /bin/sh -c "/usr/bin/objdump -T /lib/libc.so.* | grep 'FBSD_[0-9][0-9]*\\.[0-9][0-9]*' -o | sort -Vru | head -1"
                     OUTPUT_VARIABLE OBJDUMP_T_RESULT)
     if("${OBJDUMP_T_RESULT}" MATCHES "FBSD_([0-9]+\\.[0-9]+)")
         message(STATUS "Found FBSD ${CMAKE_MATCH_1}")
         target_compile_definitions(libfastfetch PUBLIC FF_FBSD_VERSION="${CMAKE_MATCH_1}")
     endif()
-elseif(FreeBSD AND EXISTS "/usr/local/bin/objdump")
+elseif(FreeBSD AND NOT DragonFly AND EXISTS "/usr/local/bin/objdump")
     execute_process(COMMAND /bin/sh -c "/usr/local/bin/objdump -T /lib/libc.so.* | grep 'FBSD_[0-9][0-9]*\\.[0-9][0-9]*' -o | sort -Vru | head -1"
                     OUTPUT_VARIABLE OBJDUMP_T_RESULT)
     if("${OBJDUMP_T_RESULT}" MATCHES "FBSD_([0-9]+\\.[0-9]+)")
@@ -2368,6 +2371,13 @@ if (BUILD_TESTS)
         PRIVATE libfastfetch
     )
 
+    add_executable(fastfetch-test-spin
+        tests/spin.c
+    )
+    target_link_libraries(fastfetch-test-spin
+        PRIVATE libfastfetch
+    )
+
     add_executable(fastfetch-test-strbuf
         tests/strbuf.c
     )
@@ -2490,6 +2500,7 @@ if (BUILD_TESTS)
     enable_testing()
     add_test(NAME test-cache COMMAND fastfetch-test-cache)
     add_test(NAME test-logo COMMAND fastfetch-test-logo)
+    add_test(NAME test-spin COMMAND fastfetch-test-spin)
     add_test(NAME test-strbuf COMMAND fastfetch-test-strbuf)
     add_test(NAME test-list COMMAND fastfetch-test-list)
     add_test(NAME test-format COMMAND fastfetch-test-format)
