@@ -1,5 +1,12 @@
 # Unreleased
 
+Features:
+* Added glob and environment variable expansion to logo sources on Windows. `%VAR%`, `$VAR` and `${VAR}` are supported, and a glob matching several files picks one randomly. (#2718, Logo, Windows)
+* Added opt-in drive health detection for NVMe disks, via udisks2 on Linux (no root required), NVMe SMART on macOS and the NVMe health log on Windows. (#2726, PhysicalDisk, Linux / macOS / Windows)
+    * Enable it with `"health": true`. The default output appends `Health <100 - percentage used>%` and any critical warnings.
+    * New format args: `{health}`, `{percent-used}`, `{available-spare}` and `{critical-warning}`.
+    * ATA disks report the SMART `failing` status as a critical warning.
+
 Changes:
 * Improved PCI GPU name resolution by checking udev's hardware database and the NVIDIA driver's procfs before falling back to pci.ids. (GPU, Linux)
 
